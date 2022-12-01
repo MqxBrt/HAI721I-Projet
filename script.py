@@ -1,9 +1,14 @@
 import os
 import time
 
-sleeptime = 0.005
 port = 10000
 print("=================================================================")
+print("Vitesse d'exécution ? [rapide (0) / lente (1)] :")
+mode = str(input())
+if (mode == "0") :
+    sleeptime = 0.005
+else :
+    sleeptime = 5
 print("Nom du fichier (à placer dans le dossier 'files') :")
 filename = str(input())
 
@@ -23,7 +28,7 @@ print("\nGraphe à " + str(nSommets) +" sommets - Temps estimé = " + str(2*slee
 print("=================================================================")
 
 file = '"' + filename + '"'
-call = "./bin/serveur " + str(port) + " " + file +" &"
+call = "./bin/serveur " + str(port) + " " + file +" " + mode + " &"
 os.system(call)
 time.sleep(sleeptime*nAretes/600)
 
@@ -32,4 +37,7 @@ for i in range(0, nSommets) :
   call = "./bin/noeud 127.0.0.1  " + str(port) + " " + str(i+1) + " &"
   os.system(call)
 
-time.sleep(nSommets*sleeptime*3)
+if (mode == "0") :
+    time.sleep(nSommets*sleeptime*3)
+else :
+    time.sleep(nSommets*sleeptime+0.5)

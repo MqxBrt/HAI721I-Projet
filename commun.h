@@ -26,20 +26,37 @@ int createSocket() {
     return ds;
 }
 
-// Nommage de socket
-int nameSocket(int ds, int port) {
+// Nommage de socket par défaut
+int nameSocketDefault(int ds, int port) {
     struct sockaddr_in ad;
     ad.sin_family=AF_INET;
     ad.sin_addr.s_addr=INADDR_ANY;
     ad.sin_port=htons((short) port);
 
-    int res = bind(ds,(struct sockaddr*) &ad,sizeof(ad));
-    return res;
+    return bind(ds,(struct sockaddr*) &ad,sizeof(ad));
+}
+
+// Nommage de socket sur l'adresse publique
+int nameSocketAddress(int ds, int port) {
+    // Récupération de l'adresse IP publique
+    FILE *fichier = popen("ifconfig eno1 | grep 'inet' | cut -d: -f2 | awk '{ print $2}'", "r");
+    char * ip = NULL;
+    size_t len = 0;
+    getline(&ip, &len, fichier);
+    pclose(fichier);
+    
+    struct sockaddr_in ad;
+    ad.sin_family=AF_INET;
+    ad.sin_addr.s_addr=inet_addr(ip);
+    ad.sin_port=htons((short) port);
+
+    return bind(ds,(struct sockaddr*) &ad,sizeof(ad));
 }
 
 // Désignation de la socket avec des char*
 struct sockaddr_in designateSocket(char* ip, char* port) {
     struct sockaddr_in sock;
+    sock.sin_family=AF_INET;
     sock.sin_addr.s_addr = inet_addr(ip) ; 
     sock.sin_port = htons((short) atoi(port));
     return sock;

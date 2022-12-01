@@ -34,16 +34,26 @@ int main(int argc, char *argv[]) {
     char *id = argv[3];
 
     // Nommage des sockets
-    nameSocket(socket_ecoute_serveur, 0);
+    if (nameSocketAddress(socket_ecoute_serveur, 0 )== -1) {
+        printf("%s[NOEUD %s] Erreur - Nommage de la socket de connexion serveur : %s\n%s", COLOR_RED, id, strerror(errno), COLOR_WHITE);
+    }
     struct sockaddr_in adEcouteServeur;
     int taille_sockaddr_in;
     taille_sockaddr_in = sizeof(adEcouteServeur);
     getsockname(socket_ecoute_serveur, (struct sockaddr *) &adEcouteServeur, &taille_sockaddr_in);
 
-    nameSocket(socket_ecoute_voisins, 0);
+
+    if (nameSocketAddress(socket_ecoute_voisins, 0 )== -1) {
+        printf("%s[NOEUD %s] Erreur - Nommage de la socket de connexion serveur : %s\n%s", COLOR_RED, id, strerror(errno), COLOR_WHITE);
+    }
     struct sockaddr_in adEcouteVoisins;
     getsockname(socket_ecoute_voisins, (struct sockaddr *) &adEcouteVoisins, &taille_sockaddr_in);
 
+
+    if (nameSocketAddress(socket_connexion_serveur, 0 )== -1) {
+        printf("%s[NOEUD %s] Erreur - Nommage de la socket de connexion serveur : %s\n%s", COLOR_RED, id, strerror(errno), COLOR_WHITE);
+    } 
+    
     // Mise en écoute de la socket du serveur
     if (TCPListen(socket_ecoute_serveur, 1) == -1) {
         printf("%s[NOEUD %s] Erreur - Mise en écoute de la socket serveur : %s\n%s", COLOR_RED, id, strerror(errno), COLOR_WHITE);
@@ -53,7 +63,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Connexion au serveur
-    printf("%s[NOEUD %s] Communication avec le serveur\n%s", COLOR_CYAN, id, COLOR_WHITE);
+    printf("%s[NOEUD %s] Connexion au serveur\n%s", COLOR_CYAN, id, COLOR_WHITE);
     struct sockaddr_in adresse_serveur = designateSocket(argv[1], argv[2]);
     socklen_t lgA = sizeof(struct sockaddr_in);
     if (TCPConnect(socket_connexion_serveur, &adresse_serveur) ==-1) {
@@ -94,6 +104,7 @@ int main(int argc, char *argv[]) {
         close(socket_ecoute_voisins);
         exit(1);
     }
+    printf("%s[NOEUD %s] Déconnexion du serveur\n%s", COLOR_CYAN, id, COLOR_WHITE);
     close(socket_connexion_serveur);
 
     // Réception des adresses des voisins
@@ -105,6 +116,7 @@ int main(int argc, char *argv[]) {
         close(socket_ecoute_voisins);
         exit(1);
     }
+    printf("%s[NOEUD %s] Serveur accepté, réception des adresses\n%s", COLOR_CYAN, id, COLOR_WHITE);
     struct sockaddr_in * adressesVoisins = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in) * nombre_voisins);
     for (int i = 0; i < nombre_voisins; i++) {
         if (recvTCP(socket_serveur, (void *) &adressesVoisins[i], sizeof(struct sockaddr_in)) == -1) {
@@ -132,6 +144,7 @@ int main(int argc, char *argv[]) {
             close(socket_ecoute_voisins);
             exit(1);
         }
+        //printf("%s[NOEUD %s] Demande de connexion au voisin (%i/%i)\n%s", COLOR_CYAN, id, i+1, nombre_voisins, COLOR_WHITE);
     }
 
     // Acceptation des voisins
@@ -147,6 +160,7 @@ int main(int argc, char *argv[]) {
             } 
             exit(1);
         }
+        //printf("%s[NOEUD %s] Acceptation du voisin (%i/%i)\n%s", COLOR_CYAN, id, i+1, nombre_voisins, COLOR_WHITE);
     }
     printf("%s[NOEUD %s] Connecté à tous les voisins\n%s", COLOR_GREEN, id, COLOR_WHITE);
     return 0;

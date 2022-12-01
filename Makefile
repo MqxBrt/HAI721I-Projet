@@ -8,3 +8,11 @@ compile :
 run :
 	make compile
 	python3 script.py
+
+server :
+	clear
+	./bin/serveur 10000 anneau3.txt 1
+
+node :
+	clear
+	./bin/noeud 
