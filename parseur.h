@@ -13,8 +13,10 @@
 
 // Structure de retour
 struct graphe {
-    int ** tab_voisins;
-    int * tab_degres;
+    int ** tab_voisins_entrants;
+    int ** tab_voisins_sortants;
+    int * tab_degres_entrants;
+    int * tab_degres_sortants;
     int nombre_sommets;
 };
 
@@ -82,7 +84,8 @@ struct graphe parser(char * filename) {
         printf("%s[PARSEUR] Ouverture de %s réussie, parsage en cours\n%s", COLOR_ORANGE, filename, COLOR_WHITE);
         int tab_size;
         char ** infos;
-        int * tailles;
+        int * tailles_entrant; // nb voisins à écouter
+        int * tailles_sortant; // nb voisins à se connecter
         // Lecture ligne par ligne
         // 1er tour pour récupérer les tailles des listes d'aretes
         while ((read = getline(&line, &len, input_file)) != -1) {
@@ -92,20 +95,23 @@ struct graphe parser(char * filename) {
             else if (line[0] == 'p'){
                 infos = str_split(line, ' ');
                 tab_size = atoi(infos[2]) + 1;
-                tailles = (int*) malloc(sizeof(int) * tab_size);
+                tailles_entrant = (int*) malloc(sizeof(int) * tab_size);
+                tailles_sortant = (int*) malloc(sizeof(int) * tab_size);
             } 
             else if (line[0] == 'e'){
                 infos = str_split(line, ' ');
-                tailles[atoi(infos[1])]++;
-                tailles[atoi(infos[2])]++;
+                tailles_sortant[atoi(infos[1])]++;
+                tailles_entrant[atoi(infos[2])]++;
 
             } 
         }
         rewind(input_file);
         // Déclarer le tableau de tableaux
-        int ** graph = (int**) malloc(sizeof(int*) * tab_size);
+        int ** graph_entrant = (int**) malloc(sizeof(int*) * tab_size);
+        int ** graph_sortant = (int**) malloc(sizeof(int*) * tab_size);
         for (int i = 0; i < tab_size; i++){
-            graph[i]= (int*) malloc(sizeof(int) * tailles[i]) ;
+            graph_entrant[i]= (int*) malloc(sizeof(int) * tailles_entrant[i]);
+            graph_sortant[i]= (int*) malloc(sizeof(int) * tailles_sortant[i]);
         } 
 
         int index1 = 0;
@@ -125,10 +131,10 @@ struct graphe parser(char * filename) {
                 }
                 vertex2 = atoi(infos[2]);
 
-                while (graph[vertex1][index1] != 0) index1++;
-                graph[vertex1][index1] = vertex2;
-                while (graph[vertex2][index2] != 0) index2++;
-                graph[vertex2][index2] = vertex1;    
+                while (graph_sortant[vertex1][index1] != 0) index1++;
+                graph_sortant[vertex1][index1] = vertex2;
+                while (graph_entrant[vertex2][index2] != 0) index2++;
+                graph_entrant[vertex2][index2] = vertex1;    
             }
         }
         
@@ -141,7 +147,7 @@ struct graphe parser(char * filename) {
             free(line);
         }
         printf("%s[PARSEUR] Parsage terminé\n%s", COLOR_ORANGE, COLOR_WHITE);
-        struct graphe resStruct = {graph, tailles, tab_size}; 
+        struct graphe resStruct = {graph_entrant, graph_sortant, tailles_entrant, tailles_sortant, tab_size}; 
         return resStruct;
     }
 }
